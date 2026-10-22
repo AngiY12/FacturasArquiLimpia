@@ -10,7 +10,8 @@ class BrokerConsumer:
         # Conexión local al contenedor de RabbitMQ
         conexion = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
         canal = conexion.channel()
-        canal.queue_declare(queue='facturas_queue')
+        # Las colas compartidas deben ser durables en RabbitMQ moderno.
+        canal.queue_declare(queue='facturas_queue', durable=True)
 
         def callback(ch, method, properties, body):
             datos = json.loads(body)
