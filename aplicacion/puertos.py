@@ -16,7 +16,7 @@ class ICrearFacturaUseCase(ABC):
     van a invocar de forma simétrica[cite: 1].
     """
     @abstractmethod
-    def ejecutar(self, dto: CrearFacturaDTO) -> None:
+    def ejecutar(self, dto: CrearFacturaDTO) -> Factura:
         pass
 
 # Contrato de salida (Puerto secundario)
