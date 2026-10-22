@@ -1,23 +1,24 @@
 import os
+
 from aplicacion.casos_uso import CrearFacturaUseCase
-from infraestructura.repositorios import PostgresFacturaRepository, OracleFacturaRepository
-from presentacion.broker_amqp import BrokerConsumer
+from infraestructura.repositorios import OracleFacturaRepository, PostgresFacturaRepository
+from presentacion.api_rest import crear_app
 
-def configurar_sistema():
-    # El intercambio entre proveedores se resuelve por configuración[cite: 2]
-    proveedor_bd = os.getenv("PROVEEDOR_BD", "Postgres")
 
-    if proveedor_bd == "Oracle":
-        repositorio = OracleFacturaRepository()
-    else:
-        repositorio = PostgresFacturaRepository()
+def crear_repositorio():
+    proveedor = os.getenv("PROVEEDOR_BD", "Postgres").strip().lower()
+    if proveedor == "oracle":
+        return OracleFacturaRepository()
+    return PostgresFacturaRepository()
 
-    # Inyección de dependencias
-    caso_uso = CrearFacturaUseCase(repositorio)
-    
-    # Iniciar el consumidor pasándole el caso de uso
-    consumidor = BrokerConsumer(caso_uso)
-    consumidor.iniciar()
+
+# Composition Root: la API y RabbitMQ comparten el mismo caso de uso.
+repositorio = crear_repositorio()
+caso_uso = CrearFacturaUseCase(repositorio)
+app = crear_app(caso_uso)
+
 
 if __name__ == "__main__":
-    configurar_sistema()
+    from presentacion.broker_amqp import BrokerConsumer
+
+    BrokerConsumer(caso_uso).iniciar()
